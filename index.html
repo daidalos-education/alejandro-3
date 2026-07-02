@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Les fantastiques aventures de alejandro el PRO</title>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #050508; overflow: hidden;
+            font-family: 'Courier New', Courier, monospace; color: white; user-select: none;
+            touch-action: none; /* Prevé comportamientos táctiles por defecto del navegador */
+        }
+        #menu-inicial, #menu-dificultat {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(135deg, #14141e, #050508);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100;
+        }
+        #menu-dificultat { display: none; z-index: 101; }
+        h1, h2 {
+            font-size: 32px; margin-bottom: 30px; color: #00ffcc;
+            text-shadow: 4px 4px 0px #aa00ff;
+            letter-spacing: 2px;
+            text-align: center;
+            padding: 0 10px;
+        }
+        @media(min-width: 768px) {
+            h1, h2 { font-size: 44px; }
+        }
+        .boto-menu {
+            background-color: #1a1a26; color: white; border: 4px solid #00ffcc;
+            padding: 12px 35px; font-size: 20px; font-weight: bold; margin: 10px;
+            cursor: pointer; width: 220px; text-align: center;
+            box-shadow: 5px 5px 0px #aa00ff;
+            transition: transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .boto-menu:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px #aa00ff;
+            background-color: #00ffcc; color: #111;
+        }
+        .boto-facil { border-color: #2ecc71; box-shadow: 5px 5px 0px #27ae60; }
+        .boto-facil:hover { background-color: #2ecc71; box-shadow: 7px 7px 0px #27ae60; }
+        .boto-normal { border-color: #f1c40f; box-shadow: 5px 5px 0px #f39c12; }
+        .boto-normal:hover { background-color: #f1c40f; box-shadow: 7px 7px 0px #f39c12; }
+        .boto-dificil { border-color: #e74c3c; box-shadow: 5px 5px 0px #c0392b; }
+        .boto-dificil:hover { background-color: #e74c3c; box-shadow: 7px 7px 0px #c0392b; }
+        
+        #interficie {
+            position: absolute; top: 15px; left: 15px; font-size: 16px;
+            background: rgba(10, 10, 15, 0.95); padding: 10px;
+            border: 4px solid #34495e; z-index: 10; display: none;
+            box-shadow: 4px 4px 0px #000;
+        }
+        #boto-comencar-aventura {
+            position: absolute; top: 15px; right: 15px; font-size: 16px;
+            background-color: #1a1a26; color: #00ffcc; border: 4px solid #00ffcc;
+            padding: 10px 20px; font-weight: bold; cursor: pointer; z-index: 15;
+            display: none; box-shadow: 4px 4px 0px #aa00ff;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #boto-comencar-aventura:hover {
+            background-color: #00ffcc; color: #111;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #aa00ff;
+        }
+        #botiga-modal {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(20, 20, 35, 0.95); border: 6px solid #aa00ff;
+            padding: 20px; z-index: 200; display: none; text-align: center;
+            box-shadow: 0px 0px 20px rgba(170, 0, 255, 0.5); width: 90%; max-width: 500px;
+            box-sizing: border-box;
+        }
+        #botiga-modal h2 { color: #00ffcc; margin-top: 0; text-shadow: 2px 2px 0px #000; font-size: 24px; }
+        .opcio-botiga {
+            background-color: #252538; border: 3px solid #00ffcc; padding: 12px;
+            margin: 15px 0; cursor: pointer; font-size: 14px; font-weight: bold;
+            transition: background 0.2s; color: white;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .opcio-botiga:hover { background-color: #00ffcc; color: #111; }
+        
+        /* Contenedor adaptativo para el Canvas en Móviles */
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #11111d;
+        }
+        canvas { 
+            display: none; 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+            box-sizing: border-box;
+        }
+
+        /* DISEÑO DE CONTROLES TÁCTILES */
+        #controles-tactiles {
+            display: none; /* Solo se activa en pantallas táctiles por JS o media query */
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none; /* Permite clicks a través de las zonas vacías */
+            z-index: 50;
+        }
+        .zona-tactil {
+            position: absolute;
+            bottom: 15px;
+            display: flex;
+            pointer-events: auto;
+        }
+        #controles-esquerra { left: 15px; gap: 15px; }
+        #controles-dreta { right: 15px; gap: 15px; align-items: flex-end; }
+        
+        .boto-tactil {
+            width: 65px; height: 65px;
+            background: rgba(26, 26, 38, 0.85);
+            border: 3px solid #00ffcc;
+            border-radius: 12px;
+            color: white; font-size: 24px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 3px 3px 0px #aa00ff;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .boto-tactil:active {
+            background: #00ffcc; color: #111;
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0px #aa00ff;
+        }
+        .boto-accions { width: 60px; height: 60px; font-size: 20px; }
+        #boto-salt { background: rgba(52, 152, 219, 0.85); border-color: #3498db; box-shadow: 3px 3px 0px #2980b9;}
+        #boto-especial { background: rgba(155, 89, 182, 0.85); border-color: #9b59b6; box-shadow: 3px 3px 0px #8e44ad; font-size: 14px;}
+        
+        /* Botones Contextuales Superiores */
+        #controles-contextuals {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+            z-index: 60;
+        }
+        .boto-contextual {
+            display: none; /* Se activan dinámicamente */
+            padding: 10px 15px;
+            background: #e67e22;
+            border: 3px solid #f39c12;
+            color: white; font-weight: bold; font-size: 14px;
+            box-shadow: 3px 3px 0px #d35400;
+            border-radius: 6px;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="menu-inicial">
+        <h1>FANTASTICAS AVENTURAS DE ALEJANDRO I SU ESPADA LEGENDARIA</h1>
+        <div class="boto-menu" onclick="mostrarMenuDificultat()">JUGAR</div>
+        <div class="boto-menu" onclick="alert('Controls:\nMÒBIL:\nD-Pad esquerra: Moure\'s\nBotó ⇧: Saltar\nBotó ⚔️: Atac Normal\nBotó ⭐: Super Atac\n\nTECLAT:\nA/D o Fletxes: Moure\'s\nW / Espai: Saltar\nClic: Atac Normal\nTecla 1: Super Atac\nTecla E: Cap\nTecla T: Botiga')">OPCIONS</div>
+    </div>
+
+    <div id="menu-dificultat">
+        <h2>TRIA LA TEVA DIFICULTAT</h2>
+        <div class="boto-menu boto-facil" onclick="comencarJoc('facil')">FÀCIL</div>
+        <div class="boto-menu boto-normal" onclick="comencarJoc('normal')">NORMAL</div>
+        <div class="boto-menu boto-dificil" onclick="comencarJoc('dificil')">DIFÍCIL</div>
+    </div>
+
+    <button id="boto-comencar-aventura" onclick="saltarAventura()">EMPEZAR JUEGO ⚔️</button>
+
+    <div id="botiga-modal">
+        <h2>BOTIGA RETRO GRATUÏTA</h2>
+        <p style="color: #bbb; margin-bottom: 20px;">Tria només UNA millora per continuar el teu viatge:</p>
+        <div class="opcio-botiga" onclick="triarMillora('vida')">❤️ MÉS VIDA (+5 Cors de Màxim)</div>
+        <div class="opcio-botiga" onclick="triarMillora('dany')">⚔️ SUPER FORÇA (+2 Dany d'Espasa)</div>
+        <div class="opcio-botiga" onclick="triarMillora('escut')">🛡️ ESCUT DIVÍ (+120 Frames d'Invulnerabilitat)</div>
+    </div>
+
+    <div id="interficie">
+        <div id="info-nivell" style="color: #00ffcc; font-weight: bold; margin-bottom: 5px;">NIVELL 0 - TUTO</div>
+        <div><span id="text-marcador">Monstres:</span> <span id="puntuacio" style="color: #ff4d4d; font-weight: bold;">3</span></div>
+        <div style="margin-top: 5px;">VIDA: <span id="vida-jugador-text" style="color: #00ffcc; font-weight: bold;">10/10</span></div>
+        <div style="margin-top: 5px; font-size: 14px;">HABILITAT: <span id="cooldown-text" style="color: #2ecc71; font-weight: bold;">A PUNT</span></div>
+    </div>
+    
+    <div id="controles-tactiles">
+        <div id="controles-esquerra" class="zona-tactil">
+            <div class="boto-tactil" id="boto-esquerra">←</div>
+            <div class="boto-tactil" id="boto-dreta">→</div>
+        </div>
+        <div id="controles-dreta" class="zona-tactil">
+            <div class="boto-tactil boto-accions" id="boto-especial">⭐</div>
+            <div class="boto-tactil boto-accions" id="boto-atac">⚔️</div>
+            <div class="boto-tactil boto-accions" id="boto-salt">⇧</div>
+        </div>
+        <div id="controles-contextuals">
+            <div class="boto-contextual" id="boto-mobil-cap" onclick="forcarEventMobl('e')">IR AL JEFE (E)</div>
+            <div class="boto-contextual" id="boto-mobil-botiga" onclick="forcarEventMobl('t')" style="background:#9b59b6; border-color:#8e44ad;">TIENDA (T)</div>
+        </div>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="jocCanvas"></canvas>
+    </div>
+
+    <script>
+        const menu = document.getElementById('menu-inicial');
+        const menuDificultat = document.getElementById('menu-dificultat');
+        const interficie = document.getElementById('interficie');
+        const botigaModal = document.getElementById('botiga-modal');
+        const botoAventura = document.getElementById('boto-comencar-aventura');
+        const canvas = document.getElementById('jocCanvas');
+        const ctx = canvas.getContext('2d');
+        const marcador = document.getElementById('puntuacio');
+        const textMarcador = document.getElementById('text-marcador');
+        const vidaJugadorText = document.getElementById('vida-jugador-text');
+        const infoNivell = document.getElementById('info-nivell');
+        const cooldownText = document.getElementById('cooldown-text');
+        
+        // Elementos UI móvil
+        const panellTactil = document.getElementById('controles-tactiles');
+        const btnContextualCap = document.getElementById('boto-mobil-cap');
+        const btnContextualBotiga = document.getElementById('boto-mobil-botiga');
+
+        canvas.width = 1280;
+        canvas.height = 720;
+
+        ctx.imageSmoothingEnabled = false;
+
+        let jocActiu = false;
+        let botigaOberta = false;
+        let capDerrotatHabilitatBotiga = false; 
+        let nivell = 0; 
+        let salaActual = 1; 
+        let enemicsRestants = 3;
+        let victoriaTotal = false;
+        let gameOver = false;
+        let modeTorreInfinita = false;
+        let oleadaActual = 0;
+
+        // Variables de Dificultat global
+        let dificultatSeleccionada = 'normal';
+        let multiplicadorVidaEnemic = 1;
+        let modificadorRecarregaEnemic = 1;
+
+        let danyEspasaBase = 2; 
+
+        let imatgeCarregada = false;
+        const imatgeAtacEspecial = new Image();
+        imatgeAtacEspecial.onload = () => { imatgeCarregada = true; };
+        imatgeAtacEspecial.src = 'image_b0e25a.png'; 
+
+        let espasaCarregada = false;
+        const imatgeEspasa = new Image();
+        imatgeEspasa.onload = () => { espasaCarregada = true; };
+        imatgeEspasa.src = 'image_4a5d54.png'; 
+
+        const jugador = {
+            x: 624, y: 220, amplada: 32, alcada: 32, 
+            velocitatX: 0, velocitatY: 0, velocitat: 5,
+            gravetat: 0.4, potenciaSalt: -10, alTerra: false,
+            tocantParetEsquerra: false, tocantParetDreta: false,
+            vida: 10, maxVida: 10, invulnerable: 0, direccio: 'dreta'
+        };
+
+        const espasa = { activa: false, abast: 95, angle: 0, durada: 12, tempsRestant: 0 };
+        
+        const atacEspecial = { 
+            actiu: false, abastX: 200, abastY: 80, durada: 12, tempsRestant: 0, 
+            direccioAtac: 'dreta', cooldownRestant: 0, cooldownMaxim: 180 
+        };
+        
+        let fletxes = []; 
+        let parets = [];
+        let monstres = [];
+
+        const boss = {
+            x: 0, y: 0, amplada: 96, alcada: 96, velocitatX: 3, velocitatY: 0,
+            vida: 30, maxVida: 30, actiu: false, estatAtac: 'esperant', cronometreAtac: 0, cronometreEspasa: 0,
+            abastEspasaGegant: 220, color: '#8e44ad', colorUlls: '#f1c40f'
+        };
+
+        function generarMarcsDeLaSala() {
+            return [
+                { x: 0, y: 0, amplada: canvas.width, alcada: 48, tipus: 'terra' }, 
+                { x: 0, y: canvas.height - 48, amplada: canvas.width, alcada: 48, tipus: 'terra' }, 
+                { x: 0, y: 0, amplada: 48, alcada: canvas.height, tipus: 'paret' }, 
+                { x: canvas.width - 48, y: 0, amplada: 48, alcada: canvas.height, tipus: 'paret' }
+            ];
+        }
+
+        function mostrarMenuDificultat() {
+            menu.style.display = 'none';
+            menuDificultat.style.display = 'flex';
+        }
+
+        function configurarDificultat(dif) {
+            dificultatSeleccionada = dif;
+            if (dif === 'facil') {
+                jugador.maxVida = 15;
+                multiplicadorVidaEnemic = 0.7;
+                modificadorRecarregaEnemic = 1.3; 
+            } else if (dif === 'dificil') {
+                jugador.maxVida = 7;
+                multiplicadorVidaEnemic = 1.5;
+                modificadorRecarregaEnemic = 0.7; 
+            } else { 
+                jugador.maxVida = 10;
+                multiplicadorVidaEnemic = 1;
+                modificadorRecarregaEnemic = 1;
+            }
+            jugador.vida = jugador.maxVida;
+            vidaJugadorText.innerText = jugador.vida + "/" + jugador.maxVida;
+        }
+
+        function carregarTutorial() {
+            nivell = 0; salaActual = 1; enemicsRestants = 3; modeTorreInfinita = false; oleadaActual = 0;
+            infoNivell.innerText = "NIVELL 0 - TUTORIAL (" + dificultatSeleccionada.toUpperCase() + ")";
+            textMarcador.innerText = "Pràctica:"; marcador.innerText = "Infinita (Vida ∞)";
+            botoAventura.style.display = 'block'; 
+
+            parets = [
+                ...generarMarcsDeLaSala(),
+                { x: 380, y: 300, amplada: 48, alcada: 372 }, 
+                { x: 850, y: 300, amplada: 48, alcada: 372 }, 
+                { x: 428, y: 300, amplada: 422, alcada: 32 }  
+            ];
+
+            monstres = [
+                { x: 120, y: 600, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(3 * multiplicadorVidaEnemic)), maxVida: Math.max(1, Math.round(3 * multiplicadorVidaEnemic)), actiu: true, recarrega: 40, direccio: 'dreta', volador: false },
+                { x: 250, y: 600, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(3 * multiplicadorVidaEnemic)), maxVida: Math.max(1, Math.round(3 * multiplicadorVidaEnemic)), actiu: true, recarrega: 10, direccio: 'esquerra', volador: false },
+                { x: 1100, y: 600, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(3 * multiplicadorVidaEnemic)), maxVida: Math.max(1, Math.round(3 * multiplicadorVidaEnemic)), actiu: true, recarrega: 25, direccio: 'esquerra', volador: false }
+            ];
+
+            jugador.x = 624; jugador.y = 220; 
+            boss.actiu = false;
+            fletxes = [];
+            atacEspecial.cooldownRestant = 0;
+        }
+
+        function saltarAventura() {
+            botoAventura.style.display = 'none'; 
+            jugador.vida = jugador.maxVida; 
+            vidaJugadorText.innerText = jugador.vida + "/" + jugador.maxVida;
+            carregarNivell1();
+        }
+
+        function carregarNivell1() {
+            nivell = 1; salaActual = 1; enemicsRestants = 10;
+            capDerrotatHabilitatBotiga = false;
+            infoNivell.innerText = "NIVELL 1 - SALA 1 (" + dificultatSeleccionada.toUpperCase() + ")";
+            textMarcador.innerText = "Monstres:"; marcador.innerText = enemicsRestants;
+
+            parets = [
+                ...generarMarcsDeLaSala(),
+                { x: 160, y: 200, amplada: 240, alcada: 32 }, { x: 500, y: 160, amplada: 280, alcada: 32 },
+                { x: 880, y: 200, amplada: 240, alcada: 32 }, { x: 48, y: 360, amplada: 256, alcada: 32 },
+                { x: 380, y: 320, amplada: 200, alcada: 32 }, { x: 680, y: 380, amplada: 320, alcada: 32 },
+                { x: 1040, y: 320, amplada: 192, alcada: 32 }, { x: 200, y: 520, amplada: 280, alcada: 32 },
+                { x: 580, y: 540, amplada: 220, alcada: 32 }
+            ];
+
+            let vBase = 3 * multiplicadorVidaEnemic;
+            monstres = [
+                { x: 200, y: 150, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 0, direccio: 'dreta', volador: false },
+                { x: 350, y: 150, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 20, direccio: 'esquerra', volador: false },
+                { x: 600, y: 110, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 40, direccio: 'dreta', volador: false },
+                { x: 950, y: 150, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 10, direccio: 'esquerra', volador: false },
+                { x: 150, y: 300, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 30, direccio: 'dreta', volador: false },
+                { x: 450, y: 270, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 50, direccio: 'esquerra', volador: false },
+                { x: 750, y: 330, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 15, direccio: 'dreta', volador: false },
+                { x: 1100, y: 270, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 35, direccio: 'esquerra', volador: false },
+                { x: 300, y: 470, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 5, direccio: 'dreta', volador: false },
+                { x: 650, y: 490, amplada: 32, alcada: 32, velocitatY: 0, vida: Math.max(1, Math.round(vBase)), maxVida: Math.max(1, Math.round(vBase)), actiu: true, recarrega: 25, direccio: 'esquerra', volador: false }
+            ];
+            boss.actiu = false;
+            fletxes = [];
+            jugador.x = 80; jugador.y = 500;
+        }
+
+        function carregarBossNivell1() {
+            salaActual = 3;
+            capDerrotatHabilitatBotiga = false;
+            infoNivell.innerText = "NIVELL 1 - SÚPER CAP";
+            textMarcador.innerText = "Vida Cap:";
+            boss.vida = Math.round(30 * multiplicadorVidaEnemic); 
+            boss.maxVida = boss.vida; 
+            boss.color = '#8e44ad'; boss.colorUlls = '#f1c40f'; boss.velocitatX = 3;
+            boss.amplada = 96; boss.alcada = 96;
+            marcador.innerText = boss.vida;
+
+            parets = [
+                ...generarMarcsDeLaSala(),
+                { x: 150, y: canvas.height - 180, amplada: 250, alcada: 32 },
+                { x: canvas.width - 400, y: canvas.height - 180, amplada: 250, alcada: 32 },
+                { x: 440, y: canvas.height - 340, amplada: 400, alcada: 32 }
+            ];
+            
+            jugador.x = 100; jugador.y = canvas.height - 120;
+            boss.x = canvas.width / 2 - 48; boss.y = 120;
+            boss.actiu = true;
+            boss.cronometreAtac = 0;
+            boss.cronometreEspasa = 0;
+            fletxes = [];
+        }
+
+        function carregarNivell2Sala1() {
+            nivell = 2; salaActual = 1; enemicsRestants = 6;
+            capDerrotatHabilitatBotiga = false;
+            infoNivell.innerText = "NIVELL 2 - FLUX PIXEL";
+            textMarcador.innerText = "Monstres:"; marcador.innerText = enemicsRestants;
+
+            parets = [
+                ...generarMarcsDeLaSala(),
+                { x: 48, y: canvas.height - 120, amplada: canvas.width - 96, alcada: 72 },
+                { x: 160, y: canvas.height - 240, amplada: 220, alcada: 32 },
+                { x: 280, y: canvas.height - 380, amplada: 220, alcada: 32 },
+                { x: 120, y: canvas.height - 500, amplada: 220, alcada: 32 },
+                { x: 560, y: canvas.height - 290, amplada: 320, alcada: 32 },
+                { x: 480, y: canvas.height - 460, amplada: 260, alcada: 32 },
+                { x: 640, y: canvas.height - 590, amplada: 320, alcada: 32 },
+                { x: canvas.width - 440, y: canvas.height - 240, amplada: 240, alcada: 32 },
+                { x: canvas.width - 340, y: canvas.height - 400, amplada: 200, alcada: 32 },
+                { x: canvas.width - 480, y: canvas.height - 530, amplada: 220, alcada: 32 },
+                { x: 180, y: 160, amplada: 320, alcada: 32 },
+                { x: canvas.width - 500, y: 160, amplada: 320, alcada: 32 }
+            ];
+
+            let v4 = Math.max(1, Math.round(4 * multiplicadorVidaEnemic));
+            let v5 = Math.max(1, Math.round(5 * multiplicadorVidaEnemic));
+
+            monstres = [
+                { x: 220, y: 400, amplada: 32, alcada: 32, velocitatY: 0, vida: v4, maxVida: v4, actiu: true, recarrega: 0, direccio: 'dreta', volador: false },
+                { x: 620, y: 350, amplada: 32, alcada: 32, velocitatY: 0, vida: v4, maxVida: v4, actiu: true, recarrega: 20, direccio: 'esquerra', volador: false },
+                { x: canvas.width - 300, y: 400, amplada: 32, alcada: 32, velocitatY: 0, vida: v5, maxVida: v5, actiu: true, recarrega: 40, direccio: 'esquerra', volador: false },
+                { x: 520, y: 200, amplada: 32, alcada: 32, velocitatY: 0, vida: v4, maxVida: v4, actiu: true, recarrega: 10, direccio: 'dreta', volador: false },
+                { x: 280, y: 80, amplada: 32, alcada: 32, velocitatY: 0, vida: v4, maxVida: v4, actiu: true, recarrega: 30, direccio: 'dreta', volador: false },
+                { x: canvas.width - 380, y: 80, amplada: 32, alcada: 32, velocitatY: 0, vida: v5, maxVida: v5, actiu: true, recarrega: 50, direccio: 'esquerra', volador: false }
+            ];
+
+            jugador.x = 100; jugador.y = canvas.height - 180;
+            boss.actiu = false;
+            fletxes = [];
+        }
+
+        function carregarNivell2Sala2() {
+            salaActual = 2;
+            infoNivell.innerText = "NIVELL 2 - ANTECÀMBER ANTE-CAP";
+            textMarcador.innerText = "Estat:"; marcador.innerText = "Prem 'E' / Botó Cap!";
+            monstres = []; fletxes = [];
+
+            parets = [
+                ...generarMarcsDeLaSala(),
+                { x: 48, y: canvas.height - 120, amplada: canvas.width - 96, alcada: 72 },
+                { x: 280, y: canvas.height - 260, amplada: 360, alcada: 32 },
+                { x: canvas.width - 640, y: canvas.height - 400, amplada: 360, alcada: 32 }
+            ];
+            jugador.x = 100; jugador.y = canvas.height - 200;
+        }
+
+        function carregarNivell2BossAleatori() {
+            salaActual = 3;
+            capDerrotatHabilitatBotiga = false;
+            infoNivell.innerText = "NIVELL 2 - CAP MUTANT";
+            textMarcador.innerText = "Vida Cap:";
+
+            const tipusBoss = Math.floor(Math.random() * 3);
+            if (tipusBoss === 0) {
+                boss.color = '#27ae60'; boss.amplada = 128; boss.alcada = 128; boss.velocitatX = 2; boss.vida = 45; boss.colorUlls = '#e67e22';
+            } else if (tipusBoss === 1) {
+                boss.color = '#c0392b'; boss.amplada = 80; boss.alcada = 80; boss.velocitatX = 5; boss.vida = 25; boss.colorUlls = '#ffffff';
+            } else {
+                boss.color = '#d35400'; boss.amplada = 112; boss.alcada = 112; boss.velocitatX = 3.5; boss.vida = 35; boss.colorUlls = '#00ffff';
+            }
+            
+            boss.vida = Math.round(boss.vida * multiplicadorVidaEnemic);
+            boss.maxVida = boss.vida; marcador.innerText = boss.vida;
+
+            parets = [
+                ...generarMarcsDeLaSala(),
+                { x: 48, y: canvas.height - 120, amplada: canvas.width - 96, alcada: 72 },
+                { x: 320, y: canvas.height - 280, amplada: canvas.width - 640, alcada: 32 }
+            ];
+            jugador.x = 120; jugador.y = canvas.height - 200;
+            boss.x = canvas.width / 2; boss.y = canvas.height - 350;
+            boss.velocitatY = 0; 
+            boss.actiu = true;
+            fletxes = [];
+        }
+
+        function iniciarTorreInfinita() {
+            modeTorreInfinita = true;
+            salaActual = 1; 
+            oleadaActual = 1;
+            generarOleadaTorre();
+        }
+
+        function generarOleadaTorre() {
+            infoNivell.innerText = "TORRE INFINITA - OLEADA " + oleadaActual;
+            fletxes = [];
+            jugador.x = canvas.width / 2 - 16; 
+            jugador.y = canvas.height - 150;
+
+            parets = [
+                ...generarMarcsDeLaSala(),
+                { x: 48, y: canvas.height - 100, amplada: canvas.width - 96, alcada: 52 },
+                { x: 200, y: canvas.height - 240, amplada: 250, alcada: 32 },
+                { x: canvas.width - 450, y: canvas.height - 240, amplada: 250, alcada: 32 },
+                { x: 440, y: canvas.height - 380, amplada: 400, alcada: 32 }
+            ];
+
+            monstres = [];
+            
+            let quantitatEnemics = 3;
+            if (oleadaActual > 4) {
+                quantitatEnemics = 3 + Math.floor((oleadaActual - 4) / 2);
+            }
+
+            let vidaEnemicBase = (3 + Math.floor(oleadaActual * 0.5)) * multiplicadorVidaEnemic;
+
+            for (let i = 0; i < quantitatEnemics; i++) {
+                let spawnX = (i % 2 === 0) ? 150 + (i * 40) : canvas.width - 250 - (i * 40);
+                let spawnY = (i % 3 === 0) ? canvas.height - 150 : canvas.height - 300;
+                
+                monstres.push({
+                    x: spawnX, y: spawnY, amplada: 32, alcada: 32, velocitatY: 0,
+                    vida: Math.max(1, Math.round(vidaEnemicBase)), maxVida: Math.max(1, Math.round(vidaEnemicBase)), actiu: true,
+                    recarrega: Math.round((30 + (i * 20)) * modificadorRecarregaEnemic), direccio: 'dreta', volador: false, color: '#2ecc71'
+                });
+            }
+
+            if (oleadaActual % 5 === 0) {
+                monstres.push({
+                    x: canvas.width / 2 - 24, y: 150, amplada: 48, alcada: 48, velocitatY: 0,
+                    vida: Math.max(1, Math.round(vidaEnemicBase * 2)), maxVida: Math.max(1, Math.round(vidaEnemicBase * 2)), actiu: true,
+                    recarrega: Math.round(40 * modificadorRecarregaEnemic), direccio: 'esquerra', volador: true, color: '#f1c40f',
+                    dirVol: 1, velVol: 2.5
+                });
+            }
+
+            enemicsRestants = monstres.length;
+            textMarcador.innerText = "Restants:"; marcador.innerText = enemicsRestants;
+        }
+
+        function dibuixarBlocPixel(x, y, w, h) {
+            const tamanyPixel = 4; 
+            ctx.fillStyle = modeTorreInfinita ? '#4a2810' : '#2c3e50'; 
+            ctx.fillRect(x, y, w, h);
+
+            ctx.fillStyle = modeTorreInfinita ? '#6d3c1a' : '#34495e';
+            ctx.fillRect(x, y, w, tamanyPixel);
+            ctx.fillRect(x, y, tamanyPixel, h);
+
+            ctx.fillStyle = modeTorreInfinita ? '#2b1708' : '#1a252f';
+            for (let i = 0; i < w; i += 32) {
+                ctx.fillRect(x + i, y, tamanyPixel, h);
+            }
+            for (let j = 0; j < h; j += 16) {
+                ctx.fillRect(x, y + j, w, tamanyPixel);
+            }
+        }
+
+        function dibuixarFonsPixel() {
+            ctx.fillStyle = modeTorreInfinita ? '#160d06' : '#11111d';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = modeTorreInfinita ? '#26160b' : '#161626';
+            const midaReixeta = 64;
+            for(let x=0; x<canvas.width; x+=midaReixeta) {
+                ctx.fillRect(x, 0, 2, canvas.height);
+            }
+            for(let y=0; y<canvas.height; y+=midaReixeta) {
+                ctx.fillRect(0, y, canvas.width, 2);
+            }
+        }
+
+        function dibuixarPersonatgePixel(p, colorCos, colorDetalls) {
+            ctx.fillStyle = colorCos;
+            ctx.fillRect(p.x, p.y, p.amplada, p.alcada);
+
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fillRect(p.x, p.y + p.alcada - 6, p.amplada, 6); 
+            
+            ctx.fillStyle = colorDetalls;
+            const tamanyUll = 6;
+            if (p.direccio === 'dreta') {
+                ctx.fillRect(p.x + p.amplada - 10, p.y + 8, tamanyUll, tamanyUll);
+            } else {
+                ctx.fillRect(p.x + 4, p.y + 8, tamanyUll, tamanyUll);
+            }
+        }
+
+        const tecles = {};
+        window.addEventListener('keydown', (e) => { 
+            if(!jocActiu || gameOver || victoriaTotal || botigaOberta) return;
+            tecles[e.key.toLowerCase()] = true; 
+
+            if (e.key === '1' && !atacEspecial.actiu && !espasa.activa && atacEspecial.cooldownRestant <= 0) executarAtacEspecial();
+            if (e.key.toLowerCase() === 'e' && nivell === 2 && salaActual === 2) carregarNivell2BossAleatori();
+            if (e.key.toLowerCase() === 't' && capDerrotatHabilitatBotiga) obrirBotiga();
+        });
+        window.addEventListener('keyup', (e) => { if(jocActiu) tecles[e.key.toLowerCase()] = false; });
+
+        // SISTEMA DE BOTONES PARA DISPOSITIVOS MÓVILES
+        function mapejarBotoMobil(idElement, teclaEquiv) {
+            const el = document.getElementById(idElement);
+            el.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if(!jocActiu || gameOver || victoriaTotal || botigaOberta) return;
+                tecles[teclaEquiv] = true;
+            });
+            el.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                tecles[teclaEquiv] = false;
+            });
+        }
+        
+        // Mapear los botones del D-Pad y de Salto
+        mapejarBotoMobil('boto-esquerra', 'a');
+        mapejarBotoMobil('boto-dreta', 'd');
+        mapejarBotoMobil('boto-salt', 'w');
+
+        // Botón especial para móviles
+        document.getElementById('boto-especial').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if(!jocActiu || gameOver || victoriaTotal || botigaOberta) return;
+            if (!atacEspecial.actiu && !espasa.activa && atacEspecial.cooldownRestant <= 0) executarAtacEspecial();
+        });
+
+        // Botón de ataque para móviles (Ataca automáticamente hacia donde mira el héroe)
+        document.getElementById('boto-atac').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!jocActiu || espasa.activa || atacEspecial.actiu || victoriaTotal || gameOver || botigaOberta) return;
+            
+            const centreX = jugador.x + jugador.amplada / 2;
+            const centreY = jugador.y + jugador.alcada / 2;
+            
+            // Si mira a la derecha ángulo 0, si mira a la izquierda ángulo PI
+            espasa.angle = jugador.direccio === 'dreta' ? 0 : Math.PI;
+            espasa.activa = true; 
+            espasa.tempsRestant = espasa.durada;
+
+            const comprovarImpacte = (obj) => {
+                for (let d = 10; d <= espasa.abast; d += 15) {
+                    if (centreX + Math.cos(espasa.angle)*d > obj.x && centreX + Math.cos(espasa.angle)*d < obj.x + obj.amplada &&
+                        centreY + Math.sin(espasa.angle)*d > obj.y && centreY + Math.sin(espasa.angle)*d < obj.y + obj.alcada) return true;
+                }
+                return false;
+            };
+
+            if (salaActual === 1) {
+                monstres.forEach(m => {
+                    if (m.actiu && comprovarImpacte(m)) {
+                        m.vida -= danyEspasaBase; 
+                        if (m.vida <= 0) {
+                            m.actiu = false;
+                            if (nivell === 0) {
+                                setTimeout(() => { if (nivell === 0) m.actiu = true; m.vida = m.maxVida; }, 1500);
+                            } else {
+                                comprovarEnemicEliminat();
+                            }
+                        }
+                    }
+                });
+            } else if (salaActual === 3 && boss.actiu && comprovarImpacte(boss)) {
+                boss.vida -= danyEspasaBase; 
+                marcador.innerText = boss.vida;
+                if (boss.vida <= 0) gestionarVictoriaBoss();
+            }
+        });
+
+        // Forzar eventos de botones contextuales móviles
+        function forcarEventMobl(tecla) {
+            if (tecla === 'e' && nivell === 2 && salaActual === 2) carregarNivell2BossAleatori();
+            if (tecla === 't' && capDerrotatHabilitatBotiga) obrirBotiga();
+        }
+
+        function comencarJoc(dificultat) {
+            menuDificultat.style.display = 'none'; 
+            interficie.style.display = 'block'; 
+            canvas.style.display = 'block';
+            
+            // Activar panel móvil si es un dispositivo táctil
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                panellTactil.style.display = 'block';
+            }
+            
+            configurarDificultat(dificultat);
+            jocActiu = true;
+            carregarTutorial(); 
+            actualitzar();
+        }
+
+        function rebreMal(quantitat) {
+            if (nivell === 0) {
+                jugador.vida = jugador.maxVida;
+                vidaJugadorText.innerText = jugador.vida + "/" + jugador.maxVida;
+                return;
+            }
+            if (jugador.invulnerable <= 0 && !victoriaTotal && !gameOver) {
+                jugador.vida -= quantitat;
+                if (jugador.vida < 0) jugador.vida = 0;
+                vidaJugadorText.innerText = jugador.vida + "/" + jugador.maxVida;
+                jugador.invulnerable = 60; 
+                if (jugador.vida <= 0) gameOver = true;
+            }
+        }
+
+        function comprovarEnemicEliminat() {
+            if (nivell > 0 || modeTorreInfinita) {
+                enemicsRestants--; 
+                marcador.innerText = enemicsRestants;
+                if (enemicsRestants <= 0) {
+                    if (modeTorreInfinita) {
+                        if (oleadaActual % 5 === 0) {
+                            capDerrotatHabilitatBotiga = true;
+                            obrirBotiga();
+                        } else {
+                            oleadaActual++;
+                            generarOleadaTorre();
+                        }
+                    } else {
+                        if (nivell === 1) carregarBossNivell1();
+                        else carregarNivell2Sala2();
+                    }
+                }
+            }
+        }
+
+        function executarAtacEspecial() {
+            atacEspecial.actiu = true;
+            atacEspecial.tempsRestant = atacEspecial.durada;
+            atacEspecial.direccioAtac = jugador.direccio;
+            atacEspecial.cooldownRestant = atacEspecial.cooldownMaxim; 
+
+            let areaAtac = {
+                x: atacEspecial.direccioAtac === 'dreta' ? jugador.x + jugador.amplada : jugador.x - atacEspecial.abastX,
+                y: jugador.y - atacEspecial.abastY / 2,
+                amplada: atacEspecial.abastX,
+                alcada: atacEspecial.abastY + jugador.alcada
+            };
+
+            if (salaActual === 1) {
+                monstres.forEach(m => {
+                    if (m.actiu && rectCollisio(m, areaAtac)) {
+                        m.vida -= 8; 
+                        if (m.vida <= 0) {
+                            m.actiu = false; 
+                            if (nivell === 0) {
+                                setTimeout(() => { if (nivell === 0) m.actiu = true; m.vida = m.maxVida; }, 1500);
+                            } else {
+                                comprovarEnemicEliminat();
+                            }
+                        }
+                    }
+                });
+            } else if (salaActual === 3 && boss.actiu) {
+                if (rectCollisio(boss, areaAtac)) {
+                    boss.vida -= 8; 
+                    marcador.innerText = boss.vida;
+                    if (boss.vida <= 0) gestionarVictoriaBoss();
+                }
+            }
+        }
+
+        // Evento mouse alternativo para compatibilidad en PC/clicks de apuntado antiguos
+        window.addEventListener('mousedown', (e) => {
+            if (!jocActiu || espasa.activa || atacEspecial.actiu || victoriaTotal || gameOver || botigaOberta) return;
+            if (e.target.closest('#controles-tactiles') || e.target.classList.contains('boto-menu')) return; // Evitar disparar al tocar botones de UI
+            
+            const rect = canvas.getBoundingClientRect();
+            const escalaX = canvas.width / rect.width;
+            const escalaY = canvas.height / rect.height;
+            const mouseX = (e.clientX - rect.left) * escalaX;
+            const mouseY = (e.clientY - rect.top) * escalaY;
+
+            const centreX = jugador.x + jugador.amplada / 2;
+            const centreY = jugador.y + jugador.alcada / 2;
+            espasa.angle = Math.atan2(mouseY - centreY, mouseX - centreX);
+            espasa.activa = true; espasa.tempsRestant = espasa.durada;
+
+            const comprovarImpacte = (obj) => {
+                for (let d = 10; d <= espasa.abast; d += 15) {
+                    if (centreX + Math.cos(espasa.angle)*d > obj.x && centreX + Math.cos(espasa.angle)*d < obj.x + obj.amplada &&
+                        centreY + Math.sin(espasa.angle)*d > obj.y && centreY + Math.sin(espasa.angle)*d < obj.y + obj.alcada) return true;
+                }
+                return false;
+            };
+
+            if (salaActual === 1) {
+                monstres.forEach(m => {
+                    if (m.actiu && comprovarImpacte(m)) {
+                        m.vida -= danyEspasaBase; 
+                        if (m.vida <= 0) {
+                            m.actiu = false;
+                            if (nivell === 0) {
+                                setTimeout(() => { if (nivell === 0) m.actiu = true; m.vida = m.maxVida; }, 1500);
+                            } else {
+                                comprovarEnemicEliminat();
+                            }
+                        }
+                    }
+                });
+            } else if (salaActual === 3 && boss.actiu && comprovarImpacte(boss)) {
+                boss.vida -= danyEspasaBase; 
+                marcador.innerText = boss.vida;
+                if (boss.vida <= 0) gestionarVictoriaBoss();
+            }
+        });
+
+        function gestionarVictoriaBoss() {
+            boss.actiu = false;
+            capDerrotatHabilitatBotiga = true; 
+            textMarcador.innerText = "BOTIGA:";
+            marcador.innerText = "Prem tecla T / Botó!";
+        }
+
+        function obrirBotiga() {
+            botigaOberta = true;
+            botigaModal.style.display = 'block';
+        }
+
+        function triarMillora(tipus) {
+            if (tipus === 'vida') {
+                jugador.maxVida += 5; 
+                jugador.vida = jugador.maxVida; 
+            } else if (tipus === 'dany') {
+                danyEspasaBase += 2; 
+            } else if (tipus === 'escut') {
+                jugador.invulnerable = 150; 
+            }
+
+            vidaJugadorText.innerText = jugador.vida + "/" + jugador.maxVida;
+            botigaModal.style.display = 'none';
+            botigaOberta = false;
+            capDerrotatHabilitatBotiga = false; 
+
+            if (modeTorreInfinita) {
+                oleadaActual++;
+                generarOleadaTorre();
+            } else {
+                if (nivell === 1) carregarNivell2Sala1();
+                else if (nivell === 2) iniciarTorreInfinita(); 
+            }
+        }
+
+        function rectCollisio(r1, r2) {
+            return r1.x < r2.x + r2.amplada && r1.x + r1.amplada > r2.x && r1.y < r2.y + r2.alcada && r1.y + r1.alcada > r2.y;
+        }
+
+        function actualitzar() {
+            if (!jocActiu || botigaOberta) {
+                if (botigaOberta) requestAnimationFrame(actualitzar);
+                return;
+            }
+            
+            // Gestionar visibilidad de botones contextuales de móvil
+            if (panellTactil.style.display === 'block') {
+                btnContextualCap.style.display = (nivell === 2 && salaActual === 2) ? 'block' : 'none';
+                btnContextualBotiga.style.display = capDerrotatHabilitatBotiga ? 'block' : 'none';
+            }
+
+            if (jugador.invulnerable > 0) jugador.invulnerable--;
+
+            if (atacEspecial.cooldownRestant > 0) {
+                atacEspecial.cooldownRestant--;
+                let segonsRestants = Math.ceil(atacEspecial.cooldownRestant / 60);
+                cooldownText.innerText = segonsRestants + "s";
+                cooldownText.style.color = "#ff4d4d";
+            } else {
+                cooldownText.innerText = "A PUNT";
+                cooldownText.style.color = "#2ecc71";
+            }
+
+            if (!gameOver && !victoriaTotal) {
+                jugador.velocitatX = 0;
+                if (tecles['a'] || tecles['arrowleft']) { jugador.velocitatX = -jugador.velocitat; jugador.direccio = 'esquerra'; }
+                if (tecles['d'] || tecles['arrowright']) { jugador.velocitatX = jugador.velocitat; jugador.direccio = 'dreta'; }
+
+                if (tecles['w'] || tecles[' '] || tecles['arrowup']) {
+                    if (jugador.alTerra) { jugador.velocitatY = jugador.potenciaSalt; jugador.alTerra = false; }
+                    else if (jugador.tocantParetEsquerra) {
+                        jugador.velocitatY = jugador.potenciaSalt * 0.9; jugador.velocitatX = jugador.velocitat * 2;
+                        jugador.direccio = 'dreta'; tecles['w'] = tecles[' '] = tecles['arrowup'] = false;
+                    } else if (jugador.tocantParetDreta) {
+                        jugador.velocitatY = jugador.potenciaSalt * 0.9; jugador.velocitatX = -jugador.velocitat * 2;
+                        jugador.direccio = 'esquerra'; tecles['w'] = tecles[' '] = tecles['arrowup'] = false;
+                    }
+                }
+            } else { jugador.velocitatX = 0; }
+
+            jugador.velocitatY += jugador.gravetat;
+            jugador.x += jugador.velocitatX;
+            jugador.tocantParetEsquerra = jugador.tocantParetDreta = false;
+            
+            parets.forEach(p => {
+                if (rectCollisio(jugador, p)) {
+                    if (jugador.velocitatX > 0) { jugador.x = p.x - jugador.amplada; if(!jugador.alTerra) jugador.tocantParetDreta = true; }
+                    if (jugador.velocitatX < 0) { jugador.x = p.x + p.amplada; if(!jugador.alTerra) jugador.tocantParetEsquerra = true; }
+                }
+            });
+
+            jugador.y += jugador.velocitatY; jugador.alTerra = false;
+            parets.forEach(p => {
+                if (rectCollisio(jugador, p)) {
+                    if (jugador.velocitatY > 0) { jugador.y = p.y - jugador.alcada; jugador.velocitatY = 0; jugador.alTerra = true; }
+                    if (jugador.velocitatY < 0) { jugador.y = p.y + p.alcada; jugador.velocitatY = 0; }
+                }
+            });
+
+            if (salaActual === 1) {
+                monstres.forEach(m => {
+                    if (m.actiu) {
+                        if (m.volador) {
+                            m.x += m.velVol * m.dirVol;
+                            if (m.x < 60 || m.x + m.amplada > canvas.width - 60) {
+                                m.dirVol *= -1;
+                            }
+                            m.direccio = (jugador.x > m.x) ? 'dreta' : 'esquerra';
+
+                            if (m.recarrega > 0) { m.recarrega--; }
+                            else {
+                                if (!gameOver) {
+                                    let angleCentral = Math.atan2((jugador.y + 16) - (m.y + 24), (jugador.x + 16) - (m.x + 24));
+                                    let angles = [angleCentral - 0.25, angleCentral, angleCentral + 0.25]; 
+                                    
+                                    angles.forEach(ang => {
+                                        fletxes.push({
+                                            x: m.x + 20, y: m.y + 20, amplada: 12, alcada: 12,
+                                            tipus: 'balaVolador',
+                                            velX: Math.cos(ang) * 4.5,
+                                            velY: Math.sin(ang) * 4.5,
+                                            dany: 1
+                                        });
+                                    });
+                                    m.recarrega = Math.round(100 * modificadorRecarregaEnemic); 
+                                }
+                            }
+                        } else {
+                            m.velocitatY += jugador.gravetat; m.y += m.velocitatY;
+                            parets.forEach(p => { if (rectCollisio(m, p)) { if (m.velocitatY > 0) { m.y = p.y - m.alcada; m.velocitatY = 0; } } });
+                            m.direccio = (jugador.x > m.x) ? 'dreta' : 'esquerra';
+
+                            if (m.recarrega > 0) { m.recarrega--; }
+                            else {
+                                let distancia = Math.hypot(jugador.x - m.x, jugador.y - m.y);
+                                if (distancia < 450 && !gameOver) { 
+                                    let angleCapJugador = Math.atan2((jugador.y + 16) - (m.y + 16), (jugador.x + 16) - (m.x + 16));
+                                    fletxes.push({
+                                        x: m.x + 16, y: m.y + 12, amplada: 12, alcada: 6,
+                                        tipus: 'balaEnemic',
+                                        velX: Math.cos(angleCapJugador) * 5,
+                                        velY: Math.sin(angleCapJugador) * 5,
+                                        dany: 1
+                                    });
+                                    m.recarrega = Math.round(90 * modificadorRecarregaEnemic); 
+                                }
+                            }
+                        }
+
+                        if (rectCollisio(jugador, m)) rebreMal(1);
+                    }
+                });
+            }
+
+            if (salaActual === 3 && boss.actiu && !gameOver) {
+                boss.x += boss.velocitatX;
+                if (boss.x < 48) { boss.x = 48; boss.velocitatX *= -1; }
+                if (boss.x + boss.amplada > canvas.width - 48) { boss.x = canvas.width - 48 - boss.amplada; boss.velocitatX *= -1; }
+
+                parets.forEach(p => {
+                    if (rectCollisio(boss, p)) {
+                        if (boss.velocitatX > 0) { boss.x = p.x - boss.amplada; boss.velocitatX *= -1; } 
+                        else if (boss.velocitatX < 0) { boss.x = p.x + p.amplada; boss.velocitatX *= -1; }
+                    }
+                });
+
+                boss.velocitatY += jugador.gravetat; 
+                boss.y += boss.velocitatY;
+                parets.forEach(p => { 
+                    if (rectCollisio(boss, p)) { 
+                        if (boss.velocitatY > 0) { boss.y = p.y - boss.alcada; boss.velocitatY = 0; } 
+                        else if (boss.velocitatY < 0) { boss.y = p.y + p.alcada; boss.velocitatY = 0; }
+                    } 
+                });
+
+                if (rectCollisio(jugador, boss)) rebreMal(1);
+                
+                boss.cronometreAtac++;
+                boss.cronometreEspasa++; 
+                
+                if (nivell === 1 && boss.cronometreEspasa >= Math.round(180 * modificadorRecarregaEnemic)) {
+                    boss.cronometreEspasa = 0;
+                    let aleatoriX = Math.random() * (canvas.width - 200) + 100;
+                    let aleatoriY = Math.random() * (canvas.height - 250) + 80;
+                    let angleCapJugador = Math.atan2((jugador.y + 16) - aleatoriY, (jugador.x + 16) - aleatoriX);
+                    fletxes.push({ 
+                        x: aleatoriX, y: aleatoriY, amplada: 20, alcada: 55, 
+                        velX: Math.cos(angleCapJugador) * 6, velY: Math.sin(angleCapJugador) * 6, 
+                        tipus: 'espasaGegantBoss', angle: angleCapJugador, dany: 3
+                    });
+                }
+                else if (nivell === 2 && boss.cronometreAtac % Math.round(25 * modificadorRecarregaEnemic) === 0) {
+                    fletxes.push({ x: Math.random() * (canvas.width - 120) + 60, y: 50, amplada: 8, alcada: 20, velX: 0, velY: 6, tipus: 'fletxaBoss', dany: 1 });
+                }
+
+                if (boss.estatAtac === 'esperant' && boss.cronometreAtac > Math.round(120 * modificadorRecarregaEnemic)) { boss.estatAtac = 'carregant'; boss.cronometreAtac = 0; } 
+                else if (boss.estatAtac === 'carregant' && boss.cronometreAtac > 50) {
+                    boss.estatAtac = 'atacant'; boss.cronometreAtac = 0;
+                    let dist = Math.hypot((jugador.x+jugador.amplada/2) - (boss.x+boss.amplada/2), (jugador.y+jugador.alcada/2) - (boss.y+boss.alcada/2));
+                    if (dist <= boss.abastEspasaGegant && (jugador.y+jugador.alcada/2) >= (boss.y+boss.alcada/2)) rebreMal(2);
+                } 
+                else if (boss.estatAtac === 'atacant' && boss.cronometreAtac > 15) { boss.estatAtac = 'esperant'; boss.cronometreAtac = 0; }
+            }
+
+            for (let idx = fletxes.length - 1; idx >= 0; idx--) {
+                let f = fletxes[idx];
+                f.x += f.velX || 0; 
+                f.y += f.velY;
+
+                if (rectCollisio(f, jugador)) { rebreMal(f.dany || 1); fletxes.splice(idx, 1); continue; }
+                
+                let colisionatAmbParet = false;
+                for (let p of parets) { if (rectCollisio(f, p)) { colisionatAmbParet = true; break; } }
+                if (colisionatAmbParet) fletxes.splice(idx, 1);
+            }
+
+            if (espasa.activa) { espasa.tempsRestant--; if (espasa.tempsRestant <= 0) espasa.activa = false; }
+            if (atacEspecial.actiu) { atacEspecial.tempsRestant--; if (atacEspecial.tempsRestant <= 0) atacEspecial.actiu = false; }
+
+            dibuixarFonsPixel();
+
+            parets.forEach(p => {
+                let colorCarrega = (salaActual === 3 && boss.estatAtac === 'carregant' && p.y > 200);
+                if (colorCarrega) { ctx.fillStyle = '#962d22'; ctx.fillRect(p.x, p.y, p.amplada, p.alcada); } 
+                else { dibuixarBlocPixel(p.x, p.y, p.amplada, p.alcada); }
+            });
+
+            fletxes.forEach(f => {
+                if(f.tipus === 'balaEnemic') { ctx.fillStyle = '#ff6600'; ctx.fillRect(f.x, f.y, f.amplada, f.alcada); } 
+                else if(f.tipus === 'balaVolador') { ctx.fillStyle = '#f39c12'; ctx.fillRect(f.x, f.y, f.amplada, f.alcada); }
+                else if(f.tipus === 'espasaGegantBoss') {
+                    ctx.save(); ctx.translate(f.x + f.amplada/2, f.y + f.alcada/2); ctx.rotate(f.angle + Math.PI/2);
+                    ctx.fillStyle = '#ff3333'; ctx.fillRect(-f.amplada/2, -f.alcada/2, f.amplada, f.alcada);
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(-2, -f.alcada/2, 4, f.alcada - 10); ctx.restore();
+                } else { ctx.fillStyle = '#d35400'; ctx.fillRect(f.x, f.y, f.amplada, f.alcada); }
+            });
+
+            if (salaActual === 1) {
+                monstres.forEach(m => {
+                    if (m.actiu) {
+                        if (m.volador) {
+                            dibuixarPersonatgePixel(m, '#f1c40f', '#000000'); 
+                        } else {
+                            dibuixarPersonatgePixel(m, m.color || '#e74c3c', '#ffffff');
+                        }
+                        ctx.fillStyle = '#555555';
+                        if (m.direccio === 'dreta') {
+                            ctx.fillRect(m.x + m.amplada - 4, m.y + 16, 10, 5); ctx.fillRect(m.x + m.amplada - 4, m.y + 19, 3, 4);
+                        } else {
+                            ctx.fillRect(m.x - 6, m.y + 16, 10, 5); ctx.fillRect(m.x + 1, m.y + 19, 3, 4);
+                        }
+                        ctx.fillStyle = '#7f8c8d'; ctx.fillRect(m.x, m.y - 12, m.amplada, 4);
+                        ctx.fillStyle = '#2ecc71'; ctx.fillRect(m.x, m.y - 12, m.amplada * (m.vida/m.maxVida), 4);
+                    }
+                });
+            }
+
+            if (salaActual === 3 && boss.actiu) {
+                dibuixarPersonatgePixel(boss, boss.color, boss.colorUlls);
+                ctx.fillStyle = '#2c3e50'; ctx.fillRect(canvas.width/2 - 200, 20, 400, 12);
+                ctx.fillStyle = '#e74c3c'; ctx.fillRect(canvas.width/2 - 200, 20, 400 * (boss.vida/boss.maxVida), 12);
+
+                if (boss.estatAtac === 'atacant') {
+                    ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)'; ctx.lineWidth = 8; ctx.beginPath();
+                    ctx.arc(boss.x + boss.amplada/2, boss.y + boss.alcada/2, boss.abastEspasaGegant, 0, Math.PI); ctx.stroke();
+                }
+            }
+
+            if (!(jugador.invulnerable > 0 && Math.floor(jugador.invulnerable / 4) % 2 === 0)) {
+                dibuixarPersonatgePixel(jugador, '#00ffcc', '#11111d');
+            }
+
+            if (espasa.activa) {
+                const centreX = jugador.x + jugador.amplada / 2;
+                const centreY = jugador.y + jugador.alcada / 2;
+                if (espasaCarregada) {
+                    ctx.save(); ctx.translate(centreX, centreY);
+                    const progrés = (espasa.durada - espasa.tempsRestant) / espasa.durada; 
+                    const arcMoviment = (progrés * Math.PI / 2) - (Math.PI / 4); 
+                    ctx.rotate(espasa.angle + arcMoviment + Math.PI / 2);
+                    ctx.drawImage(imatgeEspasa, -14, -espasa.abast, 28, 84); ctx.restore();
+                } else {
+                    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.beginPath();
+                    ctx.arc(centreX, centreY, espasa.abast, espasa.angle - 0.5, espasa.angle + 0.5); ctx.stroke();
+                }
+            }
+
+            if (atacEspecial.actiu) {
+                const centreX = jugador.x + jugador.amplada / 2;
+                const centreY = jugador.y + jugador.alcada / 2;
+                if (imatgeCarregada) {
+                    ctx.save(); ctx.translate(centreX, centreY);
+                    if (atacEspecial.direccioAtac === 'dreta') { ctx.scale(-1, 1); }
+                    ctx.drawImage(imatgeAtacEspecial, -atacEspecial.abastX / 2, -atacEspecial.abastY / 2, atacEspecial.abastX, atacEspecial.abastY);
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    ctx.fillRect(centreX - atacEspecial.abastX/2, centreY - atacEspecial.abastY/2, atacEspecial.abastX, atacEspecial.abastY);
+                }
+            }
+
+            if (tecles['1'] && atacEspecial.cooldownRestant > 0 && !atacEspecial.actiu && !espasa.activa) {
+                ctx.fillStyle = '#ff4d4d'; ctx.font = 'bold 12px "Courier New"'; ctx.textAlign = 'center';
+                ctx.fillText('ESPERA RECARREGA!', jugador.x + jugador.amplada/2, jugador.y - 20);
+            }
+
+            if (victoriaTotal) {
+                ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.fillStyle = '#00ffcc'; ctx.font = 'bold 32px "Courier New"'; ctx.textAlign = 'center';
+                ctx.fillText('!!VICTORIA TOTAL!!', canvas.width/2, canvas.height/2); return;
+            }
+            if (gameOver) {
+                ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 36px "Courier New"'; ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER - HAS MORT', canvas.width/2, canvas.height/2); return;
+            }
+
+            requestAnimationFrame(actualitzar);
+        }
+    </script>
+</body>
+</html>
